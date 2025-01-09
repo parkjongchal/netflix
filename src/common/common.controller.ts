@@ -7,10 +7,13 @@ import {
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { ApiBearerAuth } from '@nestjs/swagger';
+import { CommonService } from './common.service';
 
 @Controller('common')
 @ApiBearerAuth()
 export class CommonController {
+  constructor(private readonly commonService: CommonService) {}
+
   @Post('video')
   @UseInterceptors(
     FileInterceptor('video', {
@@ -32,6 +35,13 @@ export class CommonController {
   createVideo(@UploadedFile() video: Express.Multer.File) {
     return {
       fileName: video.filename,
+    };
+  }
+
+  @Post('presigned-url')
+  async createPresignedUrl() {
+    return {
+      url: await this.commonService.createPresignedUrl(),
     };
   }
 }
