@@ -24,7 +24,7 @@ jobs:
       - name: Build Project
         run: npm run build
 
-       - name: Run TypeORM Migration
+      - name: Run TypeORM Migration
         env:
           DATABASE_URL: ${{ secrets.DB_HOST }}
         run: |
