@@ -119,7 +119,8 @@
       "decorator.ts",
       "pipe.ts",
       "common/*",
-      "main.ts"
+      "main.ts",
+      "database/*"
     ],
     "coverageDirectory": "./coverage",
     "testEnvironment": "node",
