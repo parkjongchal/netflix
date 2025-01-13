@@ -24,6 +24,12 @@ jobs:
       - name: Build Project
         run: npm run build
 
+       - name: Run TypeORM Migration
+        env:
+          DATABASE_URL: ${{ secrets.DB_HOST }}
+        run: |
+          npx typeorm migration:run -d dist/data-source.js
+
       - name: Zip Artfact For Deployment
         run: zip -r deploy.zip .
 
