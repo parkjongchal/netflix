@@ -1,5 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { CommonController } from './common.controller';
+import { CommonService } from './common.service';
+import { ConfigService } from '@nestjs/config';
 
 describe('CommonController', () => {
   let controller: CommonController;
@@ -7,6 +9,7 @@ describe('CommonController', () => {
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       controllers: [CommonController],
+      providers: [CommonService, ConfigService],
     }).compile();
 
     controller = module.get<CommonController>(CommonController);
