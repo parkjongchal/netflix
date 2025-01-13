@@ -28,7 +28,7 @@ jobs:
         env:
           DATABASE_URL: ${{ secrets.DB_HOST }}
         run: |
-          npx typeorm migration:run -d dist/data-source.js
+          npx typeorm migration:run -d dist/database/data-source.js
 
       - name: Zip Artfact For Deployment
         run: zip -r deploy.zip .
