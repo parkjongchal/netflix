@@ -122,6 +122,7 @@
       "decorator.ts",
       "pipe.ts",
       "common/*",
+      "chat/*",
       "main.ts",
       "database/*"
     ],
