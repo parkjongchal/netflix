@@ -4,7 +4,7 @@ import { ChatRoom } from './entity/chat-room.entity';
 import { Repository } from 'typeorm';
 import { TestBed } from '@automock/jest';
 import { getRepositoryToken } from '@nestjs/typeorm';
-import { User } from 'src/user/entities/user.entity';
+import { User } from 'src/user/entity/user.entity';
 
 describe('ChatService', () => {
   let service: ChatService;

@@ -1,5 +1,5 @@
 import { BaseTable } from 'src/common/entity/base-table.entity';
-import { User } from 'src/user/entities/user.entity';
+import { User } from 'src/user/entity/user.entity';
 import {
   Entity,
   JoinTable,

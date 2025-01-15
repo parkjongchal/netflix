@@ -4,7 +4,7 @@ import { Socket } from 'socket.io';
 import { ChatRoom } from './entity/chat-room.entity';
 import { QueryRunner, Repository } from 'typeorm';
 import { Chat } from './entity/chat.entity';
-import { Role, User } from 'src/user/entities/user.entity';
+import { Role, User } from 'src/user/entity/user.entity';
 import { CreateChatDto } from './dto/create-chat.dto';
 import { WsException } from '@nestjs/websockets';
 import { plainToClass } from 'class-transformer';

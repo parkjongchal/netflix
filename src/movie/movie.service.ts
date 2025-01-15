@@ -17,7 +17,7 @@ import { GetMoviesDto } from './dto/get-movies.dto';
 import { CommonService } from 'src/common/common.service';
 import { join } from 'path';
 import { rename } from 'fs/promises';
-import { User } from 'src/user/entities/user.entity';
+import { User } from 'src/user/entity/user.entity';
 import { MovieUserLike } from './entity/movie-user-like.entity';
 import { Cache, CACHE_MANAGER } from '@nestjs/cache-manager';
 import { ConfigService } from '@nestjs/config';

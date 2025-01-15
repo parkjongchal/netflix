@@ -5,7 +5,7 @@ import { AuthModule } from 'src/auth/auth.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Chat } from './entity/chat.entity';
 import { ChatRoom } from './entity/chat-room.entity';
-import { User } from 'src/user/entities/user.entity';
+import { User } from 'src/user/entity/user.entity';
 
 @Module({
   imports: [TypeOrmModule.forFeature([Chat, ChatRoom, User]), AuthModule],

@@ -4,7 +4,7 @@ import * as request from 'supertest';
 import { AppModule } from 'src/app.module';
 import { Director } from 'src/director/entity/director.entity';
 import { Genre } from 'src/genre/entity/genre.entity';
-import { Role, User } from 'src/user/entities/user.entity';
+import { Role, User } from 'src/user/entity/user.entity';
 import { MovieDetail } from './entity/movie-detail.entity';
 import { Movie } from './entity/movie.entity';
 import { DataSource } from 'typeorm';

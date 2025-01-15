@@ -5,7 +5,7 @@ import { Movie } from './entity/movie.entity';
 import { MovieDetail } from './entity/movie-detail.entity';
 import { Director } from 'src/director/entity/director.entity';
 import { Genre } from 'src/genre/entity/genre.entity';
-import { User } from 'src/user/entities/user.entity';
+import { User } from 'src/user/entity/user.entity';
 import { MovieUserLike } from './entity/movie-user-like.entity';
 import { MovieService } from './movie.service';
 import { CommonService } from 'src/common/common.service';
@@ -15,6 +15,8 @@ import { CreateMovieDto } from './dto/create-movie.dto';
 import { UpdateMovieDto } from './dto/update-movie.dto';
 import { NotFoundException } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
+import { Chat } from 'src/chat/entity/chat.entity';
+import { ChatRoom } from 'src/chat/entity/chat-room.entity';
 
 describe('MovieService - Integration Test', () => {
   let service: MovieService;
@@ -34,7 +36,16 @@ describe('MovieService - Integration Test', () => {
           type: 'sqlite',
           database: ':memory:',
           dropSchema: true,
-          entities: [Movie, MovieDetail, Director, Genre, User, MovieUserLike],
+          entities: [
+            Movie,
+            MovieDetail,
+            Director,
+            Genre,
+            User,
+            MovieUserLike,
+            Chat,
+            ChatRoom,
+          ],
           synchronize: true,
           logging: false,
         }),
@@ -45,6 +56,8 @@ describe('MovieService - Integration Test', () => {
           Genre,
           User,
           MovieUserLike,
+          Chat,
+          ChatRoom,
         ]),
         ConfigModule.forRoot(),
       ],
