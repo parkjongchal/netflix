@@ -49,12 +49,17 @@ describe('MovieController', () => {
 
   describe('getMovie', () => {
     it('should call movieService.findOne with the correct id', async () => {
+      const mockRequest = {
+        session: {
+          movieCount: {}, // Initial session state
+        },
+      };
       const id = 1;
       const movie = { id: 1 };
 
       jest.spyOn(movieService, 'findOne').mockResolvedValue(movie as Movie);
 
-      const result = await movieController.getMovie(id);
+      const result = await movieController.getMovie(id, mockRequest);
 
       expect(movieService.findOne).toHaveBeenCalledWith(id);
       expect(result).toEqual(movie);

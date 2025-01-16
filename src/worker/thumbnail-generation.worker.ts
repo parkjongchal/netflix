@@ -6,7 +6,7 @@ import * as ffmpegFluent from 'fluent-ffmpeg';
 
 @Processor('thumbnail-generation')
 export class ThumbnailGenerationProcess extends WorkerHost {
-  async process(job: Job, token?: string): Promise<any> {
+  async process(job: Job, _token?: string): Promise<any> {
     const { videoPath, videoId } = job.data;
 
     console.log(`영상 트랜스코딩중.... ID: ${videoId}`);

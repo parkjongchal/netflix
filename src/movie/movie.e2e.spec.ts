@@ -12,6 +12,7 @@ import { MovieUserLike } from './entity/movie-user-like.entity';
 import { AuthService } from 'src/auth/auth.service';
 import { CreateMovieDto } from './dto/create-movie.dto';
 import { UpdateMovieDto } from './dto/update-movie.dto';
+import * as session from 'express-session';
 
 describe('MovieController (e2e)', () => {
   let app: INestApplication;
@@ -35,6 +36,12 @@ describe('MovieController (e2e)', () => {
         transformOptions: {
           enableImplicitConversion: true, // 입력되는 클래스 타입을 기반으로 데이터를 변경.
         },
+      }),
+    );
+
+    app.use(
+      session({
+        secret: 'secret',
       }),
     );
     await app.init();
@@ -144,7 +151,6 @@ describe('MovieController (e2e)', () => {
       const { body, statusCode } = await request(app.getHttpServer())
         .get(`/movie/${movieId}`)
         .set('authorization', `Bearer ${token}`);
-
       expect(statusCode).toBe(200);
       expect(body.id).toBe(movieId);
     });

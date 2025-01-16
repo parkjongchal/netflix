@@ -39,20 +39,21 @@ export class CommonController {
     }),
   )
   async createVideo(@UploadedFile() video: Express.Multer.File) {
+    console.log(video);
     await this.thumbnailQueue.add(
       'thumbnail',
       {
         videoId: video.filename,
         videoPath: video.path,
       },
-      {
-        priority: 1, // 우선순위
-        delay: 1000, // 딜레이
-        attempts: 3, // 재시도 횟수
-        lifo: false, // true면 나중에 추가된 작업이 먼저 작업됨
-        removeOnComplete: true,
-        removeOnFail: true,
-      },
+      // {
+      //   priority: 1, // 우선순위
+      //   delay: 1000, // 딜레이
+      //   attempts: 3, // 재시도 횟수
+      //   lifo: false, // true면 나중에 추가된 작업이 먼저 작업됨
+      //   removeOnComplete: true,
+      //   removeOnFail: true,
+      // },
     );
 
     return {
