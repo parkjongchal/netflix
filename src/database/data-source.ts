@@ -4,6 +4,7 @@ import { DataSource } from 'typeorm';
 dotenv.config();
 
 export default new DataSource({
+  // url: process.env.DB_URL,
   type: process.env.DB_TYPE as 'postgres',
   host: process.env.DB_HOST,
   port: parseInt(process.env.DB_PORT || '5432'),
