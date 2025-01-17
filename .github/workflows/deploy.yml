@@ -57,6 +57,7 @@ jobs:
           echo DB_USERNAME="$DB_USERNAME" >> test.env
           echo DB_PASSWORD="$DB_PASSWORD" >> test.env
           echo DB_DATABASE="$DB_DATABASE" >> test.env
+          echo DB_URL="$DB_URL" >> test.env
           echo HASH_ROUNDS="$HASH_ROUNDS" >> test.env
           echo ACCESS_TOKEN_SECRET="$ACCESS_TOKEN_SECRET" >> test.env
           echo REFRESH_TOKEN_SECRET="$REFRESH_TOKEN_SECRET" >> test.env
@@ -75,6 +76,7 @@ jobs:
           echo DB_USERNAME="$DB_USERNAME" >> .env
           echo DB_PASSWORD="$DB_PASSWORD" >> .env
           echo DB_DATABASE="$DB_DATABASE" >> .env
+          echo DB_URL="$DB_URL" >> .env
           echo HASH_ROUNDS="$HASH_ROUNDS" >> .env
           echo ACCESS_TOKEN_SECRET="$ACCESS_TOKEN_SECRET" >> .env
           echo REFRESH_TOKEN_SECRET="$REFRESH_TOKEN_SECRET" >> .env
