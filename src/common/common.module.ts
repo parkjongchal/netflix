@@ -10,7 +10,6 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { Movie } from 'src/movie/entity/movie.entity';
 import { DefaultLogger } from './logger/default.logger';
 import { BullModule } from '@nestjs/bullmq';
-import { PrismaService } from './prisma.service';
 
 @Module({
   imports: [
@@ -43,7 +42,7 @@ import { PrismaService } from './prisma.service';
     }),
   ],
   controllers: [CommonController],
-  providers: [CommonService, TaskScheduleService, DefaultLogger, PrismaService],
-  exports: [CommonService, DefaultLogger, PrismaService],
+  providers: [CommonService, TaskScheduleService, DefaultLogger],
+  exports: [CommonService, DefaultLogger],
 })
 export class CommonMoudle {}
