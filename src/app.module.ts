@@ -62,8 +62,11 @@ import { MongooseModule } from '@nestjs/mongoose';
         BUCKET_NAME: Joi.string().required(),
       }),
     }),
-    MongooseModule.forRoot(
-      'mongodb+srv://test:test@nestjsmongo.hhk2y.mongodb.net/?retryWrites=true&w=majority&appName=NestJSMongo',
+    ConditionalModule.registerWhen(
+      MongooseModule.forRoot(
+        'mongodb+srv://test:test@nestjsmongo.hhk2y.mongodb.net/?retryWrites=true&w=majority&appName=NestJSMongo',
+      ),
+      (env: NodeJS.ProcessEnv) => env['TYPE'] !== 'test',
     ),
     TypeOrmModule.forRootAsync({
       useFactory: (configService: ConfigService) => ({
