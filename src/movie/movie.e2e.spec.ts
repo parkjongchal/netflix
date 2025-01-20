@@ -13,6 +13,7 @@ import { AuthService } from 'src/auth/auth.service';
 import { CreateMovieDto } from './dto/create-movie.dto';
 import { UpdateMovieDto } from './dto/update-movie.dto';
 import * as session from 'express-session';
+import mongoose from 'mongoose';
 
 describe('MovieController (e2e)', () => {
   let app: INestApplication;
@@ -117,6 +118,7 @@ describe('MovieController (e2e)', () => {
   afterAll(async () => {
     await new Promise((resolve) => setTimeout(resolve, 500));
     await dataSource.destroy();
+    await mongoose.disconnect();
     await app.close();
   });
 
