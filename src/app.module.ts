@@ -66,7 +66,7 @@ import { MongooseModule } from '@nestjs/mongoose';
       MongooseModule.forRoot(
         'mongodb+srv://test:test@nestjsmongo.hhk2y.mongodb.net/?retryWrites=true&w=majority&appName=NestJSMongo',
       ),
-      (env: NodeJS.ProcessEnv) => env['TYPE'] !== 'test',
+      (env: NodeJS.ProcessEnv) => env['NODE_ENV'] !== 'test',
     ),
     TypeOrmModule.forRootAsync({
       useFactory: (configService: ConfigService) => ({
