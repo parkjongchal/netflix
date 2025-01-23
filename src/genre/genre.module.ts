@@ -1,11 +1,10 @@
 import { Module } from '@nestjs/common';
 import { GenreService } from './genre.service';
 import { GenreController } from './genre.controller';
-import { TypeOrmModule } from '@nestjs/typeorm';
-import { Genre } from './entity/genre.entity';
+import { CommonMoudle } from 'src/common/common.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Genre])],
+  imports: [CommonMoudle],
   controllers: [GenreController],
   providers: [GenreService],
 })

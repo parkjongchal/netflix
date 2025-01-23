@@ -1,27 +1,20 @@
 import { Inject, Injectable, LoggerService } from '@nestjs/common';
-import { Cron, SchedulerRegistry } from '@nestjs/schedule';
-import { InjectRepository } from '@nestjs/typeorm';
+import { SchedulerRegistry } from '@nestjs/schedule';
 import { readdir, unlink } from 'fs/promises';
 import { join, parse } from 'path';
-import { Movie } from 'src/movie/entity/movie.entity';
-import { Repository } from 'typeorm';
-import { Logger } from '@nestjs/common';
-import { DefaultLogger } from './logger/default.logger';
+
 import { WINSTON_MODULE_NEST_PROVIDER } from 'nest-winston';
+import { PrismaService } from './prisma.service';
 
 @Injectable()
 export class TaskScheduleService {
-  // private readonly logger = new Logger(TaskScheduleService.name);
   constructor(
-    @InjectRepository(Movie)
-    private readonly movieRepository: Repository<Movie>,
+    private readonly prisma: PrismaService,
     private readonly schedulerRegistry: SchedulerRegistry,
-    // private readonly logger: DefaultLogger,
     @Inject(WINSTON_MODULE_NEST_PROVIDER)
     private readonly logger: LoggerService,
   ) {}
 
-  // @Cron('*/5 * * * * *')
   logEverySecond() {
     this.logger.fatal('FATAL 레벨 로그', null, TaskScheduleService.name); // 절대로 일어나면 안되는 부분 지금 당장 수정해야 하는 부분들
     this.logger.error('ERROR 레벨 로그', null, TaskScheduleService.name); // 에러가 났을때
@@ -31,7 +24,6 @@ export class TaskScheduleService {
     this.logger.verbose('VERBOSE 레벨 로그', TaskScheduleService.name); // 진짜 중요하지 않은 내용들 (궁금하거나 쓸모없는 내용을 로깅할때)
   }
 
-  // @Cron('* * * * * *')
   async eraseOrphanFiles() {
     const files = await readdir(join(process.cwd(), 'public', 'temp'));
 
@@ -63,23 +55,29 @@ export class TaskScheduleService {
     );
   }
 
-  // @Cron('0 * * * * *')
   async calculateMovieLikeCounts() {
-    await this.movieRepository.query(`
-      UPDATE movie m
-        SET "likeCount" = (
-          SELECT count(*) FROM movie_user_like mul
-          WHERE m.id = mul."movieId" AND mul."isLike" = true
-        )
-    `);
+    const movies = await this.prisma.movie.findMany();
 
-    await this.movieRepository.query(`
-      UPDATE movie m
-        SET "dislikeCount" = (
-          SELECT count(*) FROM movie_user_like mul
-          WHERE m.id = mul."movieId" AND mul."isLike" = false
-        )
-    `);
+    for (const movie of movies) {
+      const likeCount = await this.prisma.movieUserLike.count({
+        where: {
+          movieId: movie.id,
+          isLike: true,
+        },
+      });
+
+      const dislikeCount = await this.prisma.movieUserLike.count({
+        where: {
+          movieId: movie.id,
+          isLike: true,
+        },
+      });
+
+      await this.prisma.movie.update({
+        where: { id: movie.id },
+        data: { likeCount, dislikeCount },
+      });
+    }
   }
 
   // @Cron('* * * * * *', { name: 'printer' })

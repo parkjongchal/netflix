@@ -6,10 +6,9 @@ import { diskStorage } from 'multer';
 import { join } from 'path';
 import { v4 } from 'uuid';
 import { TaskScheduleService } from './task.service';
-import { TypeOrmModule } from '@nestjs/typeorm';
-import { Movie } from 'src/movie/entity/movie.entity';
 import { DefaultLogger } from './logger/default.logger';
 import { BullModule } from '@nestjs/bullmq';
+import { PrismaService } from './prisma.service';
 
 @Module({
   imports: [
@@ -28,7 +27,6 @@ import { BullModule } from '@nestjs/bullmq';
         },
       }),
     }),
-    TypeOrmModule.forFeature([Movie]),
     BullModule.forRoot({
       connection: {
         host: 'redis-15060.c340.ap-northeast-2-1.ec2.redns.redis-cloud.com',
@@ -42,7 +40,7 @@ import { BullModule } from '@nestjs/bullmq';
     }),
   ],
   controllers: [CommonController],
-  providers: [CommonService, TaskScheduleService, DefaultLogger],
-  exports: [CommonService, DefaultLogger],
+  providers: [CommonService, TaskScheduleService, DefaultLogger, PrismaService],
+  exports: [CommonService, DefaultLogger, PrismaService],
 })
 export class CommonMoudle {}
