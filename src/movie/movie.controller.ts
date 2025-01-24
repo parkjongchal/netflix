@@ -8,7 +8,6 @@ import {
   Delete,
   Query,
   UseInterceptors,
-  ClassSerializerInterceptor,
   ParseIntPipe,
   Req,
 } from '@nestjs/common';
@@ -17,12 +16,8 @@ import { CreateMovieDto } from './dto/create-movie.dto';
 import { UpdateMovieDto } from './dto/update-movie.dto';
 import { Public } from 'src/auth/decorator/public.decorator';
 import { RBAC } from 'src/auth/decorator/rbac.decorator';
-import { Role } from 'src/user/entity/user.entity';
 import { GetMoviesDto } from './dto/get-movies.dto';
-import { TransactionInterceptor } from 'src/common/interceptor/transaction.interceptor';
 import { UserId } from 'src/user/decorator/user-id.decorator';
-import { QueryRunner } from 'src/common/decorator/query-runner.decorator';
-import { QueryRunner as QR } from 'typeorm';
 import {
   CacheKey,
   CacheTTL,
@@ -30,10 +25,10 @@ import {
 } from '@nestjs/cache-manager';
 import { Throttle } from 'src/common/decorator/throttle.decorator';
 import { ApiBearerAuth, ApiOperation, ApiResponse } from '@nestjs/swagger';
+import { Role } from '@prisma/client';
 
 @Controller('movie')
 @ApiBearerAuth()
-@UseInterceptors(ClassSerializerInterceptor)
 export class MovieController {
   constructor(private readonly movieService: MovieService) {}
 
@@ -68,7 +63,7 @@ export class MovieController {
 
   @Get(':id')
   @Public()
-  getMovie(@Param('id', ParseIntPipe) id: number, @Req() request: any) {
+  getMovie(@Param('id') id: string, @Req() request: any) {
     const session = request.session;
 
     const movieCount = session.movieCount ?? {};
@@ -85,27 +80,19 @@ export class MovieController {
 
   @Post()
   @RBAC(Role.admin)
-  @UseInterceptors(TransactionInterceptor)
-  postMovie(
-    @Body() body: CreateMovieDto,
-    @QueryRunner() queryRunner: QR,
-    @UserId() userId: number,
-  ) {
-    return this.movieService.create(body, userId, queryRunner);
+  postMovie(@Body() body: CreateMovieDto, @UserId() userId: number) {
+    return this.movieService.create(body, userId);
   }
 
   @Patch(':id')
   @RBAC(Role.admin)
-  patchMovie(
-    @Param('id', ParseIntPipe) id: number,
-    @Body() body: UpdateMovieDto,
-  ) {
+  patchMovie(@Param('id') id: string, @Body() body: UpdateMovieDto) {
     return this.movieService.update(id, body);
   }
 
   @Delete(':id')
   @RBAC(Role.admin)
-  async deleteMovie(@Param('id', ParseIntPipe) id: number) {
+  async deleteMovie(@Param('id') id: string) {
     return this.movieService.remove(id);
   }
 
@@ -134,18 +121,12 @@ export class MovieController {
    * Like 버튼 불 꺼지고 Dislike 버튼 불 켜짐
    */
   @Post(':id/like')
-  createMovieLike(
-    @Param('id', ParseIntPipe) movieId: number,
-    @UserId() userId: number,
-  ) {
+  createMovieLike(@Param('id') movieId: string, @UserId() userId: number) {
     return this.movieService.toggleMovieLike(movieId, userId, true);
   }
 
   @Post(':id/dislike')
-  createMovieDislike(
-    @Param('id', ParseIntPipe) movieId: number,
-    @UserId() userId: number,
-  ) {
+  createMovieDislike(@Param('id') movieId: string, @UserId() userId: number) {
     return this.movieService.toggleMovieLike(movieId, userId, false);
   }
 }

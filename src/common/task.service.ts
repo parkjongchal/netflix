@@ -1,20 +1,18 @@
 import { Inject, Injectable, LoggerService } from '@nestjs/common';
 import { Cron, SchedulerRegistry } from '@nestjs/schedule';
-import { InjectRepository } from '@nestjs/typeorm';
 import { readdir, unlink } from 'fs/promises';
 import { join, parse } from 'path';
-import { Movie } from 'src/movie/entity/movie.entity';
-import { Repository } from 'typeorm';
-import { Logger } from '@nestjs/common';
-import { DefaultLogger } from './logger/default.logger';
 import { WINSTON_MODULE_NEST_PROVIDER } from 'nest-winston';
+import { InjectModel } from '@nestjs/mongoose';
+import { Movie } from 'src/movie/schema/movie.schema';
+import { Model } from 'mongoose';
 
 @Injectable()
 export class TaskScheduleService {
   // private readonly logger = new Logger(TaskScheduleService.name);
   constructor(
-    @InjectRepository(Movie)
-    private readonly movieRepository: Repository<Movie>,
+    @InjectModel(Movie.name)
+    private readonly movieModel: Model<Movie>,
     private readonly schedulerRegistry: SchedulerRegistry,
     // private readonly logger: DefaultLogger,
     @Inject(WINSTON_MODULE_NEST_PROVIDER)
@@ -65,21 +63,43 @@ export class TaskScheduleService {
 
   // @Cron('0 * * * * *')
   async calculateMovieLikeCounts() {
-    await this.movieRepository.query(`
-      UPDATE movie m
-        SET "likeCount" = (
-          SELECT count(*) FROM movie_user_like mul
-          WHERE m.id = mul."movieId" AND mul."isLike" = true
-        )
-    `);
+    await this.movieModel.updateMany(
+      {}, // 모든 문서를 대상으로 업데이트
+      [
+        {
+          $set: {
+            likeCount: {
+              $size: {
+                $filter: {
+                  input: '$likedUsers', // likedUsers 배열을 순회
+                  as: 'like',
+                  cond: { $eq: ['$$like.isLike', true] }, // isLike가 true인 경우만 필터링
+                },
+              },
+            },
+          },
+        },
+      ],
+    );
 
-    await this.movieRepository.query(`
-      UPDATE movie m
-        SET "dislikeCount" = (
-          SELECT count(*) FROM movie_user_like mul
-          WHERE m.id = mul."movieId" AND mul."isLike" = false
-        )
-    `);
+    await this.movieModel.updateMany(
+      {}, // 모든 문서를 대상으로 업데이트
+      [
+        {
+          $set: {
+            dislikeCount: {
+              $size: {
+                $filter: {
+                  input: '$likedUsers', // likedUsers 배열을 순회
+                  as: 'like',
+                  cond: { $eq: ['$$like.isLike', false] }, // isLike가 true인 경우만 필터링
+                },
+              },
+            },
+          },
+        },
+      ],
+    );
   }
 
   // @Cron('* * * * * *', { name: 'printer' })

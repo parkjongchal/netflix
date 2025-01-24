@@ -1,42 +1,42 @@
 import { Injectable } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
 import { Socket } from 'socket.io';
-import { ChatRoom } from './entity/chat-room.entity';
-import { QueryRunner, Repository } from 'typeorm';
-import { Chat } from './entity/chat.entity';
-import { Role, User } from 'src/user/entity/user.entity';
 import { CreateChatDto } from './dto/create-chat.dto';
 import { WsException } from '@nestjs/websockets';
 import { plainToClass } from 'class-transformer';
+import { InjectModel } from '@nestjs/mongoose';
+import { User } from 'src/user/schema/user.schema';
+import { ClientSession, Model } from 'mongoose';
+import { Chat } from './schema/chat.schema';
+import { ChatRoom } from './schema/chat-room.schema';
+import { Role } from '@prisma/client';
 
 @Injectable()
 export class ChatService {
-  private readonly connectedClients = new Map<number, Socket>();
+  private readonly connectedClients = new Map<string, Socket>();
 
   constructor(
-    @InjectRepository(ChatRoom)
-    private readonly chatRoomRepository: Repository<ChatRoom>,
-    @InjectRepository(Chat)
-    private readonly chatRepository: Repository<Chat>,
-    @InjectRepository(User)
-    private readonly userRepository: Repository<User>,
+    @InjectModel(User.name)
+    private readonly userModel: Model<User>,
+    @InjectModel(Chat.name)
+    private readonly chatModel: Model<Chat>,
+    @InjectModel(ChatRoom.name)
+    private readonly chatRoomModel: Model<ChatRoom>,
   ) {}
 
-  registerClient(userId: number, client: Socket) {
+  registerClient(userId: string, client: Socket) {
     this.connectedClients.set(userId, client);
   }
 
-  removeClient(userId: number) {
+  removeClient(userId: string) {
     this.connectedClients.delete(userId);
   }
 
   async joinUserRooms(user: { sub: number }, client: Socket) {
-    const chatRooms = await this.chatRoomRepository
-      .createQueryBuilder('chatRoom')
-      .innerJoin('chatRoom.users', 'user', 'user.id = :userId', {
-        userId: user.sub,
+    const chatRooms = await this.chatRoomModel
+      .find({
+        users: user.sub,
       })
-      .getMany();
+      .exec();
 
     chatRooms.forEach((room) => {
       client.join(room.id.toString());
@@ -46,62 +46,74 @@ export class ChatService {
   async createMessage(
     payload: { sub: number },
     { message, room }: CreateChatDto,
-    qr: QueryRunner,
   ) {
-    const user = await this.userRepository.findOne({
-      where: {
-        id: payload.sub,
-      },
-    });
-
-    const chatRoom = await this.getOrCreateChatRoom(user, qr, room);
-
-    const msgModel = await qr.manager.save(Chat, {
-      author: user,
-      message,
-      chatRoom,
-    });
-
-    const client = this.connectedClients.get(user.id);
-    client
-      .to(chatRoom.id.toString())
-      .emit('newMessage', plainToClass(Chat, msgModel));
+    const user = await this.userModel.findById(payload.sub).exec();
+    const session = await this.chatModel.startSession();
+    session.startTransaction();
+    try {
+      const chatRoom = await this.getOrCreateChatRoom(user, session, room);
+      const msgModel = await this.chatModel.create(
+        [
+          {
+            author: user._id,
+            message,
+            chatRoom: chatRoom._id,
+          },
+        ],
+        { session },
+      );
+      session.commitTransaction();
+      const client = this.connectedClients.get(user._id.toString());
+      client
+        .to(chatRoom._id.toString())
+        .emit('newMessage', plainToClass(Chat, msgModel));
+    } catch {
+      session.abortTransaction();
+    } finally {
+      session.endSession();
+    }
 
     return message;
   }
 
-  async getOrCreateChatRoom(user: User, qr: QueryRunner, room?: number) {
+  async getOrCreateChatRoom(user: User, session: ClientSession, room?: number) {
     if (user.role === Role.admin) {
       if (!room) {
         throw new WsException('어드민은 room 값을 필수로 제공해야 합니다.');
       }
-      return qr.manager.findOne(ChatRoom, {
-        where: { id: room },
-        relations: ['users'],
-      });
+      return (await this.chatModel.findById(room)).populated('users');
     }
 
-    let chatRoom = await qr.manager
-      .createQueryBuilder(ChatRoom, 'chatRoom')
-      .innerJoin('chatRoom.users', 'user')
-      .where('user.id = :userId', { userId: user.id })
-      .getOne();
+    let chatRoom = await this.chatRoomModel
+      .findOne({
+        user: user._id,
+      })
+      .exec();
 
     if (!chatRoom) {
-      const adminUser = await qr.manager.findOne(User, {
-        where: { role: Role.admin },
+      const adminUser = await this.userModel.findOne({
+        role: Role.admin,
       });
 
-      chatRoom = await this.chatRoomRepository.save({
-        users: [user, adminUser],
-      });
-
-      [user.id, adminUser.id].forEach((userId) => {
-        const client = this.connectedClients.get(userId);
+      await this.chatRoomModel.create(
+        [
+          {
+            users: [user._id, adminUser._id],
+          },
+        ],
+        { session },
+      );
+      chatRoom = await this.chatRoomModel
+        .findOne({
+          user: user._id,
+        })
+        .exec();
+      [user._id, adminUser._id].forEach((userId) => {
+        const client = this.connectedClients.get(userId.toString());
 
         if (client) {
-          client.emit('roomCreated', chatRoom.id);
-          client.join(chatRoom.id.toString());
+          client.emit('roomCreated', chatRoom._id);
+          client.join(chatRoom._id.toString());
         }
       });
     }

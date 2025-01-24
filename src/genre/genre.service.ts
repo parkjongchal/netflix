@@ -1,35 +1,33 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreateGenreDto } from './dto/create-genre.dto';
 import { UpdateGenreDto } from './dto/update-genre.dto';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Genre } from './entity/genre.entity';
-import { Repository } from 'typeorm';
+import { InjectModel } from '@nestjs/mongoose';
+import { Genre } from './schema/genre.schema';
+import { Model } from 'mongoose';
 
 @Injectable()
 export class GenreService {
   constructor(
-    @InjectRepository(Genre)
-    private readonly genreRepository: Repository<Genre>,
+    @InjectModel(Genre.name)
+    private readonly genreModel: Model<Genre>,
   ) {}
 
   async create(createGenreDto: CreateGenreDto) {
-    const genre = await this.genreRepository.findOne({
-      where: { name: createGenreDto.name },
-    });
+    const genre = await this.genreModel.findOne({ name: createGenreDto.name });
 
     if (genre) {
       throw new NotFoundException('이미 존재하는 장르입니다.');
     }
 
-    return this.genreRepository.save(createGenreDto);
+    return this.genreModel.create(createGenreDto);
   }
 
   findAll() {
-    return this.genreRepository.find();
+    return this.genreModel.find().exec();
   }
 
-  async findOne(id: number) {
-    const genre = await this.genreRepository.findOne({ where: { id } });
+  async findOne(id: string) {
+    const genre = await this.genreModel.findById(id).exec();
 
     if (!genre) {
       throw new NotFoundException('존재하지 않는 장르입니다.');
@@ -37,28 +35,28 @@ export class GenreService {
     return genre;
   }
 
-  async update(id: number, updateGenreDto: UpdateGenreDto) {
-    const genre = await this.genreRepository.findOne({ where: { id } });
+  async update(id: string, updateGenreDto: UpdateGenreDto) {
+    const genre = await this.genreModel.findById(id).exec();
 
     if (!genre) {
       throw new NotFoundException('존재하지 않는 장르입니다.');
     }
 
-    await this.genreRepository.update({ id }, updateGenreDto);
+    await this.genreModel.findByIdAndUpdate(id, updateGenreDto).exec();
 
-    const newGenre = await this.genreRepository.findOne({ where: { id } });
+    const newGenre = await this.genreModel.findById(id).exec();
 
     return newGenre;
   }
 
-  async remove(id: number) {
-    const genre = await this.genreRepository.findOne({ where: { id } });
+  async remove(id: string) {
+    const genre = await this.genreModel.findById(id).exec();
 
     if (!genre) {
       throw new NotFoundException('존재하지 않는 장르입니다.');
     }
 
-    await this.genreRepository.delete(id);
+    await this.genreModel.findByIdAndDelete(id);
 
     return id;
   }

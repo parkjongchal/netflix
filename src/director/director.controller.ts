@@ -6,8 +6,6 @@ import {
   Patch,
   Param,
   Delete,
-  UseInterceptors,
-  ClassSerializerInterceptor,
   ParseIntPipe,
 } from '@nestjs/common';
 import { DirectorService } from './director.service';
@@ -17,7 +15,6 @@ import { ApiBearerAuth } from '@nestjs/swagger';
 
 @Controller('director')
 @ApiBearerAuth()
-@UseInterceptors(ClassSerializerInterceptor)
 export class DirectorController {
   constructor(private readonly directorService: DirectorService) {}
 
@@ -27,7 +24,7 @@ export class DirectorController {
   }
 
   @Get(':id')
-  findOne(@Param('id', ParseIntPipe) id: number) {
+  findOne(@Param('id') id: string) {
     return this.directorService.findOne(id);
   }
 
@@ -38,14 +35,14 @@ export class DirectorController {
 
   @Patch(':id')
   update(
-    @Param('id', ParseIntPipe) id: number,
+    @Param('id') id: string,
     @Body() updateDirectorDto: UpdateDirectorDto,
   ) {
     return this.directorService.update(id, updateDirectorDto);
   }
 
   @Delete(':id')
-  remove(@Param('id', ParseIntPipe) id: number) {
+  remove(@Param('id') id: string) {
     return this.directorService.remove(id);
   }
 }

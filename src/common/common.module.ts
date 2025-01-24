@@ -6,10 +6,10 @@ import { diskStorage } from 'multer';
 import { join } from 'path';
 import { v4 } from 'uuid';
 import { TaskScheduleService } from './task.service';
-import { TypeOrmModule } from '@nestjs/typeorm';
-import { Movie } from 'src/movie/entity/movie.entity';
 import { DefaultLogger } from './logger/default.logger';
 import { BullModule } from '@nestjs/bullmq';
+import { MongooseModule } from '@nestjs/mongoose';
+import { Movie, MovieSchema } from 'src/movie/schema/movie.schema';
 
 @Module({
   imports: [
@@ -28,7 +28,7 @@ import { BullModule } from '@nestjs/bullmq';
         },
       }),
     }),
-    TypeOrmModule.forFeature([Movie]),
+    MongooseModule.forFeature([{ name: Movie.name, schema: MovieSchema }]),
     BullModule.forRoot({
       connection: {
         host: 'redis-15060.c340.ap-northeast-2-1.ec2.redns.redis-cloud.com',
